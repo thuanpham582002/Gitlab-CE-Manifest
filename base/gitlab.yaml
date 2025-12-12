@@ -107,6 +107,8 @@ spec:
       containers:
       - name: gitlab
         image: gitlab/gitlab-ce:latest
+        securityContext:
+          privileged: true
         ports:
         - containerPort: 80
           name: http
@@ -133,9 +135,6 @@ spec:
         - name: gitlab-secret-volume
           mountPath: /etc/gitlab/redis_password
           subPath: GITLAB_REDIS_PASSWORD
-        - name: gitlab-config-volume
-          mountPath: /etc/gitlab/gitlab.rb
-          subPath: gitlab.rb
         resources:
           requests:
             memory: "3Gi"
@@ -170,9 +169,6 @@ spec:
       - name: gitlab-secret-volume
         secret:
           secretName: gitlab-secret
-      - name: gitlab-config-volume
-        configMap:
-          name: gitlab-config
 ---
 apiVersion: v1
 kind: Service
