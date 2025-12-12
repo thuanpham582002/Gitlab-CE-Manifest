@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: gitlab-dev
+
+bases:
+  - ../../base
+
+namespace: gitlab-dev
+
+patchesStrategicMerge:
+- storage-patch.yaml
+- resources-patch.yaml
+
+labels:
+  environment: dev
+
+replicas:
+- name: gitlab
+  count: 1
+- name: postgresql
+  count: 1
+- name: redis
+  count: 1

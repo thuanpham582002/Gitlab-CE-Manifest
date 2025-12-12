@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: gitlab-staging
+
+bases:
+  - ../../base
+
+namespace: gitlab-staging
+
+patchesStrategicMerge:
+- storage-patch.yaml
+- resources-patch.yaml
+
+labels:
+  environment: staging
+
+replicas:
+- name: gitlab
+  count: 1
+- name: postgresql
+  count: 1
+- name: redis
+  count: 1
