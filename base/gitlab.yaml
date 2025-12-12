@@ -135,13 +135,7 @@ spec:
         - name: gitlab-secret-volume
           mountPath: /etc/gitlab/redis_password
           subPath: GITLAB_REDIS_PASSWORD
-        resources:
-          requests:
-            memory: "3Gi"
-            cpu: "1500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2000m"
+        resources: {}
         livenessProbe:
           httpGet:
             path: /

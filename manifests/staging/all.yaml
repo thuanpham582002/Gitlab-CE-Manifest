@@ -1,0 +1,600 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+    name: gitlab
+  name: gitlab
+---
+apiVersion: v1
+data:
+  GITLAB_OMNIBUS_CONFIG: |
+    external_url 'http://gitlab-service.gitlab.svc.cluster.local'
+
+    # Database configuration
+    gitlab_rails['db_adapter'] = 'postgresql'
+    gitlab_rails['db_encoding'] = 'utf8'
+    gitlab_rails['db_database'] = 'gitlabhq_production'
+    gitlab_rails['db_username'] = 'postgres'
+    gitlab_rails['db_password'] = File.read('/etc/gitlab/postgres_password').strip
+    gitlab_rails['db_host'] = 'postgresql-service.gitlab.svc.cluster.local'
+    gitlab_rails['db_port'] = 5432
+
+    # Redis configuration
+    gitlab_rails['redis_host'] = 'redis-service.gitlab.svc.cluster.local'
+    gitlab_rails['redis_port'] = 6379
+    gitlab_rails['redis_password'] = File.read('/etc/gitlab/redis_password').strip
+
+    # Disable prometheus for smaller deployment
+    prometheus['enable'] = false
+    grafana['enable'] = false
+
+    # SMTP configuration (optional)
+    # gitlab_rails['smtp_enable'] = true
+    # gitlab_rails['smtp_address'] = "smtp.gmail.com"
+    # gitlab_rails['smtp_port'] = 587
+    # gitlab_rails['smtp_user_name'] = "your.email@gmail.com"
+    # gitlab_rails['smtp_password'] = "your-password"
+    # gitlab_rails['smtp_domain'] = "smtp.gmail.com"
+    # gitlab_rails['smtp_authentication'] = "login"
+    # gitlab_rails['smtp_enable_starttls_auto'] = true
+    # gitlab_rails['smtp_tls'] = false
+    # gitlab_rails['smtp_openssl_verify_mode'] = 'peer'
+kind: ConfigMap
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-config
+  namespace: gitlab
+---
+apiVersion: v1
+data:
+  GITLAB_DB_PASSWORD: Z2l0bGFicGFzc3dvcmQ=
+  GITLAB_REDIS_PASSWORD: cmVkaXNwYXNzd29yZA==
+  GITLAB_ROOT_PASSWORD: YWRtaW4xMjM=
+kind: Secret
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-secret
+  namespace: gitlab
+type: Opaque
+---
+apiVersion: v1
+data:
+  POSTGRES_DB: Z2l0bGFiaHFfcHJvZHVjdGlvbg==
+  POSTGRES_PASSWORD: Z2l0bGFicGFzc3dvcmQ=
+  POSTGRES_USER: cG9zdGdyZXM=
+kind: Secret
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: postgres-secret
+  namespace: gitlab
+type: Opaque
+---
+apiVersion: v1
+data:
+  REDIS_PASSWORD: cmVkaXNwYXNzd29yZA==
+kind: Secret
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: redis-secret
+  namespace: gitlab
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-service
+  namespace: gitlab
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 443
+  selector:
+    app: gitlab
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-ssh-service
+  namespace: gitlab
+spec:
+  ports:
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  selector:
+    app: gitlab
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: postgresql-service
+  namespace: gitlab
+spec:
+  ports:
+  - name: postgres
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: postgresql
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: redis-service
+  namespace: gitlab
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    protocol: TCP
+    targetPort: 6379
+  selector:
+    app: redis
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-config-pvc
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-data-pvc
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab-logs-pvc
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: postgres-pvc
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: redis-pvc
+  namespace: gitlab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app: gitlab
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: gitlab
+  namespace: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitlab
+      app.kubernetes.io/component: gitlab-ce
+      app.kubernetes.io/name: gitlab
+      app.kubernetes.io/part-of: gitlab
+      app.kubernetes.io/version: latest
+  template:
+    metadata:
+      annotations:
+        description: GitLab Community Edition deployment with PostgreSQL and Redis
+        maintained-by: DevOps Team
+      labels:
+        app: gitlab
+        app.kubernetes.io/component: gitlab-ce
+        app.kubernetes.io/name: gitlab
+        app.kubernetes.io/part-of: gitlab
+        app.kubernetes.io/version: latest
+    spec:
+      containers:
+      - env:
+        - name: GITLAB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: GITLAB_ROOT_PASSWORD
+              name: gitlab-secret
+        image: gitlab/gitlab-ce:latest
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 300
+          periodSeconds: 30
+          timeoutSeconds: 5
+        name: gitlab
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        - containerPort: 22
+          name: ssh
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 1500m
+            memory: 3Gi
+        volumeMounts:
+        - mountPath: /etc/gitlab
+          name: gitlab-config-storage
+        - mountPath: /var/opt/gitlab
+          name: gitlab-data-storage
+        - mountPath: /var/log/gitlab
+          name: gitlab-logs-storage
+        - mountPath: /etc/gitlab/postgres_password
+          name: gitlab-secret-volume
+          subPath: GITLAB_DB_PASSWORD
+        - mountPath: /etc/gitlab/redis_password
+          name: gitlab-secret-volume
+          subPath: GITLAB_REDIS_PASSWORD
+        - mountPath: /etc/gitlab/gitlab.rb
+          name: gitlab-config-volume
+          subPath: gitlab.rb
+      volumes:
+      - name: gitlab-config-storage
+        persistentVolumeClaim:
+          claimName: gitlab-config-pvc
+      - name: gitlab-data-storage
+        persistentVolumeClaim:
+          claimName: gitlab-data-pvc
+      - name: gitlab-logs-storage
+        persistentVolumeClaim:
+          claimName: gitlab-logs-pvc
+      - name: gitlab-secret-volume
+        secret:
+          secretName: gitlab-secret
+      - configMap:
+          name: gitlab-config
+        name: gitlab-config-volume
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app: postgresql
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: postgresql
+  namespace: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+      app.kubernetes.io/component: gitlab-ce
+      app.kubernetes.io/name: gitlab
+      app.kubernetes.io/part-of: gitlab
+      app.kubernetes.io/version: latest
+  template:
+    metadata:
+      annotations:
+        description: GitLab Community Edition deployment with PostgreSQL and Redis
+        maintained-by: DevOps Team
+      labels:
+        app: postgresql
+        app.kubernetes.io/component: gitlab-ce
+        app.kubernetes.io/name: gitlab
+        app.kubernetes.io/part-of: gitlab
+        app.kubernetes.io/version: latest
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_USER
+              name: postgres-secret
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_PASSWORD
+              name: postgres-secret
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              key: POSTGRES_DB
+              name: postgres-secret
+        image: postgres:14-alpine
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        name: postgresql
+        ports:
+        - containerPort: 5432
+          name: postgres
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app: redis
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+  name: redis
+  namespace: gitlab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      app.kubernetes.io/component: gitlab-ce
+      app.kubernetes.io/name: gitlab
+      app.kubernetes.io/part-of: gitlab
+      app.kubernetes.io/version: latest
+  template:
+    metadata:
+      annotations:
+        description: GitLab Community Edition deployment with PostgreSQL and Redis
+        maintained-by: DevOps Team
+      labels:
+        app: redis
+        app.kubernetes.io/component: gitlab-ce
+        app.kubernetes.io/name: gitlab
+        app.kubernetes.io/part-of: gitlab
+        app.kubernetes.io/version: latest
+    spec:
+      containers:
+      - command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: REDIS_PASSWORD
+              name: redis-secret
+        image: redis:7-alpine
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: 250m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /data
+          name: redis-storage
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
