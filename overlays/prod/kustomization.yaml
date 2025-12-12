@@ -14,7 +14,7 @@ patchesStrategicMerge:
 - resources-patch.yaml
 - replica-patch.yaml
 
-labels:
+commonLabels:
   environment: prod
 
 replicas:

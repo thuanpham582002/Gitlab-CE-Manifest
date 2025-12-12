@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gitlab
+  namespace: gitlab-dev
 spec:
   template:
     spec:
@@ -19,6 +20,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgresql
+  namespace: gitlab-dev
 spec:
   template:
     spec:

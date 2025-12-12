@@ -4,16 +4,16 @@ kind: Kustomization
 metadata:
   name: gitlab-dev
 
-bases:
+resources:
   - ../../base
 
 namespace: gitlab-dev
 
-patchesStrategicMerge:
-- storage-patch.yaml
-- resources-patch.yaml
+patches:
+- path: storage-patch.yaml
+- path: resources-patch.yaml
 
-labels:
+commonLabels:
   environment: dev
 
 replicas:

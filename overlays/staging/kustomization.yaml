@@ -13,7 +13,7 @@ patchesStrategicMerge:
 - storage-patch.yaml
 - resources-patch.yaml
 
-labels:
+commonLabels:
   environment: staging
 
 replicas:
