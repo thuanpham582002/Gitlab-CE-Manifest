@@ -69,10 +69,12 @@ data:
     puma['state_path'] = '/tmp/puma.state'
     puma['pidfile'] = '/tmp/puma.pid'
 
-    # Optimize Sidekiq for CI/CD workloads
+    # Optimize Sidekiq for CI/CD workloads and disable metrics
     sidekiq['min_concurrency'] = 2
     sidekiq['max_concurrency'] = 4
     sidekiq['concurrency'] = 2
+    sidekiq['metrics_enabled'] = false
+    sidekiq['health_checks_enabled'] = true
 
     # Optimize database for CI/CD
     gitlab_rails['db_pool'] = 10
@@ -446,6 +448,10 @@ spec:
         - name: PROMETHEUS_MULTIPROC_DIR
           value: ""
         - name: PROMETHEUS_EXPORTER
+          value: "false"
+        - name: RUBY_PROMETHEUS_EXPORTER
+          value: "false"
+        - name: GITLAB_PROMETHEUS_EXPORTER
           value: "false"
         - name: TMPDIR
           value: /tmp
