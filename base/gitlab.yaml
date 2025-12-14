@@ -6,14 +6,14 @@ metadata:
 type: Opaque
 data:
   # GitLab root password (base64 encoded) - CHANGE THIS IN PRODUCTION
-  # Password: SecureGitLab@2025! (meets GitLab password requirements)
-  GITLAB_ROOT_PASSWORD: U2VjdXJlR2l0TGFiQDIwMjUh
+  # Password: admin123 (simple, with weak password blocking disabled)
+  GITLAB_ROOT_PASSWORD: YWRtaW4xMjM=
   # GitLab database secrets
-  # Password: GitLabDb@2025!Secure
-  GITLAB_DB_PASSWORD: R2l0TGFiRGJAMjAyNSFTZWN1cmU=
+  # Password: gitlabpassword
+  GITLAB_DB_PASSWORD: Z2l0bGFicGFzc3dvcmQ=
   # Redis password
-  # Password: Redis@2025!SecureKey
-  GITLAB_REDIS_PASSWORD: UmVkaXNAMjAyNSFTZWN1cmVLZXk=
+  # Password: redispassword
+  GITLAB_REDIS_PASSWORD: cmVkaXNwYXNzd29yZA==
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -97,6 +97,9 @@ data:
     # Optimize timeouts for CI/CD
     gitlab_rails['webhook_timeout'] = 30
     gitlab_rails['git_timeout'] = 60
+
+    # Disable weak password blocking feature flag
+    gitlab_rails['block_weak_passwords'] = false
 
     # SMTP configuration (optional)
     # gitlab_rails['smtp_enable'] = true
