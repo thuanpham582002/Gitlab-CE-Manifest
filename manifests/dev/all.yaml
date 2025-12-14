@@ -95,6 +95,9 @@ data:
     # Disable weak password blocking feature flag
     gitlab_rails['block_weak_passwords'] = false
 
+    # Disable automatic admin account creation - will create manually
+    gitlab_rails['initial_root_password'] = File.read('/etc/gitlab/gitlab_root_password').strip rescue nil
+
     # SMTP configuration (optional)
     # gitlab_rails['smtp_enable'] = true
     # gitlab_rails['smtp_address'] = "smtp.gmail.com"
@@ -118,6 +121,23 @@ metadata:
     app.kubernetes.io/version: latest
     environment: dev
   name: gitlab-config
+  namespace: gitlab-dev
+---
+apiVersion: v1
+data:
+  gitlab_root_password: admin123
+kind: ConfigMap
+metadata:
+  annotations:
+    description: GitLab Community Edition deployment with PostgreSQL and Redis
+    maintained-by: DevOps Team
+  labels:
+    app.kubernetes.io/component: gitlab-ce
+    app.kubernetes.io/name: gitlab
+    app.kubernetes.io/part-of: gitlab
+    app.kubernetes.io/version: latest
+    environment: dev
+  name: gitlab-root-password
   namespace: gitlab-dev
 ---
 apiVersion: v1
@@ -483,6 +503,9 @@ spec:
         - mountPath: /etc/gitlab/redis_password
           name: gitlab-secret-volume
           subPath: GITLAB_REDIS_PASSWORD
+        - mountPath: /etc/gitlab/gitlab_root_password
+          name: gitlab-root-password-volume
+          subPath: gitlab_root_password
       volumes:
       - name: gitlab-config-storage
         persistentVolumeClaim:
@@ -496,6 +519,9 @@ spec:
       - name: gitlab-secret-volume
         secret:
           secretName: gitlab-secret
+      - configMap:
+          name: gitlab-root-password
+        name: gitlab-root-password-volume
 ---
 apiVersion: apps/v1
 kind: Deployment
