@@ -14,6 +14,14 @@ global:
     gitlab:
       name: gitlab
 
+  # Override image registry for environments that can't access registry.gitlab.com
+  image:
+    registry: docker.io
+  gitlab:
+    image:
+      registry: docker.io
+      repository: gitlab/gitlab-ce
+
   # Disable cert-manager since we already have it installed
   ingress:
     configureCertmanager: false
