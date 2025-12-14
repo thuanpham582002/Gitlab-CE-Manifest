@@ -1,13 +1,9 @@
 #!/bin/bash
 
 # GitLab Helm Deployment Script
-# External IP: 10.254.139.26
 
-# Set your specific kubeconfig
-export KUBECONFIG=/Users/noroom113/.kube/vnet-vcluster-thuanpt.yaml
-
-echo "Deploying GitLab CE with external IP: 10.254.139.26"
-echo "Using kubeconfig: $KUBECONFIG"
+echo "Deploying GitLab CE"
+echo "Configuration: ClusterIP with port 9070"
 
 # Deploy GitLab using Helm
 helm upgrade --install gitlab ./gitlab \
@@ -18,9 +14,13 @@ helm upgrade --install gitlab ./gitlab \
   --wait
 
 echo "Deployment completed!"
-echo "GitLab should be accessible at: http://gitlab.local"
-echo "Or directly at: http://10.254.139.26"
-
-# To get the initial root password:
-echo "To get the root password, run:"
+echo ""
+echo "🔗 To access GitLab, use port forwarding:"
+echo "kubectl port-forward -n gitlab svc/gitlab-webservice-default 8080:9070"
+echo ""
+echo "Then access GitLab at: http://localhost:8080"
+echo ""
+echo "🔑 To get the root password, run:"
 echo "kubectl get secret gitlab-gitlab-initial-root-password -n gitlab -o jsonpath='{.data.password}' | base64 -d"
+echo ""
+echo "👤 Default username: root"

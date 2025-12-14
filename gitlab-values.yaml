@@ -14,10 +14,14 @@ global:
     gitlab:
       name: gitlab
 
-  # Disable cert-manager since we're using HTTP
+  # Disable cert-manager since we already have it installed
   ingress:
     configureCertmanager: false
     enabled: false  # Disable Ingress since we're using external IP
+
+# Disable cert-manager installation since it's already installed
+certmanager:
+  install: false
 
 # GitLab CE specific configurations
 gitlab:
