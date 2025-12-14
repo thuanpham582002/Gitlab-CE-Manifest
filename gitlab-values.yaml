@@ -26,14 +26,14 @@ gitlab:
     ingress:
       enabled: false
     service:
-      type: LoadBalancer
-      externalIP: 10.254.139.26
+      type: ClusterIP
+      port: 9070  # Internal port for web service
 
   # Shell/SSH service
   gitlab-shell:
     service:
-      type: LoadBalancer
-      externalIP: 10.254.139.26
+      type: ClusterIP
+      port: 22  # Standard SSH port
 
 # Disable unnecessary features for resource optimization
 registry:

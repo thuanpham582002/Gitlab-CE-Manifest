@@ -3,7 +3,11 @@
 # GitLab Helm Deployment Script
 # External IP: 10.254.139.26
 
+# Set your specific kubeconfig
+export KUBECONFIG=/Users/noroom113/.kube/vnet-vcluster-thuanpt.yaml
+
 echo "Deploying GitLab CE with external IP: 10.254.139.26"
+echo "Using kubeconfig: $KUBECONFIG"
 
 # Deploy GitLab using Helm
 helm upgrade --install gitlab ./gitlab \
