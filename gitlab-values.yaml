@@ -17,10 +17,20 @@ global:
   # Override image registry for environments that can't access registry.gitlab.com
   image:
     registry: docker.io
-  gitlab:
+  certificates:
     image:
-      registry: docker.io
-      repository: gitlab/gitlab-ce
+      repository: docker.io/gitlab-org/build/cng/certificates
+  kubectl:
+    image:
+      repository: docker.io/gitlab-org/build/cng/kubectl
+  cfssl:
+    image:
+      repository: cfssl/cfssl
+      tag: latest
+  gitlabBase:
+    image:
+      repository: gitlab/gitlab-base
+      tag: latest
 
   # Disable cert-manager since we already have it installed
   ingress:
@@ -52,12 +62,62 @@ registry:
 
 gitlab-runner:
   enabled: false
+  image:
+    repository: gitlab/gitlab-runner
+    tag: latest
 
 pages:
   enabled: false
 
 mattermost:
   enabled: false
+
+# GitLab image configuration to override registry.gitlab.com
+gitlab:
+  webservice:
+    image:
+      repository: gitlab/gitlab-ce
+      tag: latest
+    workhorse:
+      image:
+        repository: gitlab/gitlab-workhorse-ce
+        tag: latest
+  sidekiq:
+    image:
+      repository: gitlab/gitlab-ce
+      tag: latest
+  gitaly:
+    image:
+      repository: gitlab/gitaly
+      tag: latest
+  gitlab-shell:
+    image:
+      repository: gitlab/gitlab-shell
+      tag: latest
+  migrations:
+    image:
+      repository: gitlab/gitlab-ce
+      tag: latest
+  gitlab-exporter:
+    image:
+      repository: gitlab/gitlab-exporter
+      tag: latest
+  kas:
+    image:
+      repository: gitlab/gitlab-kas
+      tag: latest
+  toolbox:
+    image:
+      repository: gitlab/gitlab-toolbox-ce
+      tag: latest
+
+# Nginx ingress configuration
+nginx-ingress:
+  controller:
+    image:
+      repository: ingressnginx/controller
+      tag: v1.11.8
+      chroot: false
 
 # Database configuration (embedded PostgreSQL for simplicity)
 postgresql:
