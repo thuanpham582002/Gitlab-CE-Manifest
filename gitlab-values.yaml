@@ -1,0 +1,74 @@
+# GitLab Helm Chart Configuration
+# External IP: 10.254.139.26
+
+global:
+  # Use Community Edition instead of Enterprise
+  edition: ce
+
+  # Configure host settings with external IP
+  hosts:
+    domain: gitlab.local
+    https: false  # Set to false for HTTP access
+    externalIP: 10.254.139.26
+    ssh: 10.254.139.26
+    gitlab:
+      name: gitlab
+
+  # Disable cert-manager since we're using HTTP
+  ingress:
+    configureCertmanager: false
+    enabled: false  # Disable Ingress since we're using external IP
+
+# GitLab CE specific configurations
+gitlab:
+  # Enable GitLab CE features
+  webservice:
+    ingress:
+      enabled: false
+    service:
+      type: LoadBalancer
+      externalIP: 10.254.139.26
+
+  # Shell/SSH service
+  gitlab-shell:
+    service:
+      type: LoadBalancer
+      externalIP: 10.254.139.26
+
+# Disable unnecessary features for resource optimization
+registry:
+  enabled: false
+
+gitlab-runner:
+  enabled: false
+
+pages:
+  enabled: false
+
+mattermost:
+  enabled: false
+
+# Database configuration (embedded PostgreSQL for simplicity)
+postgresql:
+  install: true
+  auth:
+    database: gitlabhq_production
+    username: postgres
+    password: gitlabpassword
+
+# Redis configuration (embedded Redis for simplicity)
+redis:
+  install: true
+  auth:
+    enabled: true
+    password: redispassword
+
+# Resource limits (optional - adjust as needed)
+# webservice:
+#   resources:
+#     limits:
+#       memory: 4Gi
+#       cpu: 2000m
+#     requests:
+#       memory: 2Gi
+#       cpu: 1000m
