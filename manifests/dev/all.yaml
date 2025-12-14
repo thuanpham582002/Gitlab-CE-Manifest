@@ -52,6 +52,23 @@ data:
     # Disable Prometheus mmap to prevent 500 errors
     gitlab_rails['prometheus_client_mmap_enable'] = false
 
+    # Fix shared memory and tmpfs issues
+    gitlab_rails['shared_tmpdir'] = '/tmp'
+    gitlab_rails['dir'] = '/var/opt/gitlab'
+    gitlab_rails['runtime_dir'] = '/var/opt/gitlab'
+
+    # Disable metrics collection completely to avoid mmap issues
+    gitlab_rails['metrics_enabled'] = false
+    gitlab_rails['influxdb_enabled'] = false
+
+    # Configure Puma to avoid shared memory issues
+    puma['worker_processes'] = 2
+    puma['min_threads'] = 2
+    puma['max_threads'] = 4
+    puma['tmpdir'] = '/tmp'
+    puma['state_path'] = '/tmp/puma.state'
+    puma['pidfile'] = '/tmp/puma.pid'
+
     # Optimize Sidekiq for CI/CD workloads
     sidekiq['min_concurrency'] = 2
     sidekiq['max_concurrency'] = 4
@@ -426,6 +443,12 @@ spec:
             secretKeyRef:
               key: GITLAB_ROOT_PASSWORD
               name: gitlab-secret
+        - name: PROMETHEUS_MULTIPROC_DIR
+          value: ""
+        - name: PROMETHEUS_EXPORTER
+          value: "false"
+        - name: TMPDIR
+          value: /tmp
         image: gitlab/gitlab-ce:latest
         name: gitlab
         ports:
