@@ -24,9 +24,10 @@ global:
     image:
       repository: docker.io/gitlab-org/build/cng/kubectl
   cfssl:
-    image:
-      repository: cfssl/cfssl
-      tag: latest
+    selfsign:
+      image:
+        repository: cfssl/cfssl
+        tag: latest
   gitlabBase:
     image:
       repository: gitlab/gitlab-base
@@ -39,6 +40,13 @@ global:
 
 # Disable cert-manager installation since it's already installed
 installCertmanager: false
+
+# Override shared-secrets cfssl image
+shared-secrets:
+  selfsign:
+    image:
+      repository: cfssl/cfssl
+      tag: latest
 
 # GitLab CE specific configurations
 gitlab:
@@ -63,7 +71,8 @@ registry:
 gitlab-runner:
   enabled: false
   image:
-    repository: gitlab/gitlab-runner
+    registry: docker.io
+    image: gitlab/gitlab-runner
     tag: latest
 
 pages:
