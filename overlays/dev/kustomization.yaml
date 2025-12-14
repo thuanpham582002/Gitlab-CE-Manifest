@@ -5,13 +5,9 @@ metadata:
   name: gitlab-dev
 
 resources:
-  - ../../base
+- ../../base
 
 namespace: gitlab-dev
-
-patches:
-- path: storage-patch.yaml
-- path: resources-patch.yaml
 
 commonLabels:
   environment: dev

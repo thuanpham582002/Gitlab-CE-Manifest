@@ -2,7 +2,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: gitlab-dev
 spec:
   resources:
     requests:
@@ -12,7 +11,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: redis-pvc
-  namespace: gitlab-dev
 spec:
   resources:
     requests:
@@ -22,7 +20,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: gitlab-data-pvc
-  namespace: gitlab-dev
 spec:
   resources:
     requests:

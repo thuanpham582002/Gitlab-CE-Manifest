@@ -4,20 +4,17 @@ kind: Kustomization
 metadata:
   name: gitlab-prod
 
-bases:
-  - ../../base
+resources:
+- ../../base
 
 namespace: gitlab-prod
-
-patchesStrategicMerge:
-- storage-patch.yaml
-- resources-patch.yaml
-- replica-patch.yaml
 
 commonLabels:
   environment: prod
 
 replicas:
+- name: gitlab
+  count: 1
 - name: postgresql
   count: 1
 - name: redis

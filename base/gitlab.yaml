@@ -39,6 +39,39 @@ data:
     prometheus['enable'] = false
     grafana['enable'] = false
 
+    # Disable unnecessary services
+    pages['enable'] = false
+    registry['enable'] = false
+    packages['enable'] = false
+    mattermost['enable'] = false
+    ci_gitlab_runner['enable'] = false
+    elasticsearch['enable'] = false
+    kerberos['enable'] = false
+
+    # Keep LFS enabled as requested
+    gitlab_rails['lfs_enabled'] = true
+
+    # Optimize Sidekiq for CI/CD workloads
+    sidekiq['min_concurrency'] = 2
+    sidekiq['max_concurrency'] = 4
+    sidekiq['concurrency'] = 2
+
+    # Optimize database for CI/CD
+    gitlab_rails['db_pool'] = 10
+    gitlab_rails['db_prepared_statements'] = true
+
+    # Optimize Redis for CI/CD caching
+    gitlab_rails['redis_cache_enable'] = true
+    gitlab_rails['redis_shared_state_enable'] = false
+
+    # Keep artifacts for CI/CD
+    gitlab_rails['artifacts_enabled'] = true
+    gitlab_rails['artifacts_expiration_period'] = '30 days'
+
+    # Optimize timeouts for CI/CD
+    gitlab_rails['webhook_timeout'] = 30
+    gitlab_rails['git_timeout'] = 60
+
     # SMTP configuration (optional)
     # gitlab_rails['smtp_enable'] = true
     # gitlab_rails['smtp_address'] = "smtp.gmail.com"
@@ -136,20 +169,6 @@ spec:
           mountPath: /etc/gitlab/redis_password
           subPath: GITLAB_REDIS_PASSWORD
         resources: {}
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 300
-          periodSeconds: 30
-          timeoutSeconds: 5
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
       volumes:
       - name: gitlab-config-storage
         persistentVolumeClaim:

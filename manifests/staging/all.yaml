@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
     name: gitlab
-  name: gitlab
+  name: gitlab-staging
 ---
 apiVersion: v1
 data:
@@ -35,6 +35,39 @@ data:
     prometheus['enable'] = false
     grafana['enable'] = false
 
+    # Disable unnecessary services
+    pages['enable'] = false
+    registry['enable'] = false
+    packages['enable'] = false
+    mattermost['enable'] = false
+    ci_gitlab_runner['enable'] = false
+    elasticsearch['enable'] = false
+    kerberos['enable'] = false
+
+    # Keep LFS enabled as requested
+    gitlab_rails['lfs_enabled'] = true
+
+    # Optimize Sidekiq for CI/CD workloads
+    sidekiq['min_concurrency'] = 2
+    sidekiq['max_concurrency'] = 4
+    sidekiq['concurrency'] = 2
+
+    # Optimize database for CI/CD
+    gitlab_rails['db_pool'] = 10
+    gitlab_rails['db_prepared_statements'] = true
+
+    # Optimize Redis for CI/CD caching
+    gitlab_rails['redis_cache_enable'] = true
+    gitlab_rails['redis_shared_state_enable'] = false
+
+    # Keep artifacts for CI/CD
+    gitlab_rails['artifacts_enabled'] = true
+    gitlab_rails['artifacts_expiration_period'] = '30 days'
+
+    # Optimize timeouts for CI/CD
+    gitlab_rails['webhook_timeout'] = 30
+    gitlab_rails['git_timeout'] = 60
+
     # SMTP configuration (optional)
     # gitlab_rails['smtp_enable'] = true
     # gitlab_rails['smtp_address'] = "smtp.gmail.com"
@@ -57,7 +90,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-config
-  namespace: gitlab
+  namespace: gitlab-staging
 ---
 apiVersion: v1
 data:
@@ -75,7 +108,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-secret
-  namespace: gitlab
+  namespace: gitlab-staging
 type: Opaque
 ---
 apiVersion: v1
@@ -94,7 +127,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: postgres-secret
-  namespace: gitlab
+  namespace: gitlab-staging
 type: Opaque
 ---
 apiVersion: v1
@@ -111,7 +144,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: redis-secret
-  namespace: gitlab
+  namespace: gitlab-staging
 type: Opaque
 ---
 apiVersion: v1
@@ -126,7 +159,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-service
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   ports:
   - name: http
@@ -157,7 +190,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-ssh-service
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   ports:
   - name: ssh
@@ -184,7 +217,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: postgresql-service
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   ports:
   - name: postgres
@@ -211,7 +244,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: redis-service
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   ports:
   - name: redis
@@ -238,7 +271,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-config-pvc
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   accessModes:
   - ReadWriteOnce
@@ -258,7 +291,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-data-pvc
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   accessModes:
   - ReadWriteOnce
@@ -278,7 +311,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab-logs-pvc
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   accessModes:
   - ReadWriteOnce
@@ -298,7 +331,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: postgres-pvc
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   accessModes:
   - ReadWriteOnce
@@ -318,7 +351,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: redis-pvc
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   accessModes:
   - ReadWriteOnce
@@ -339,7 +372,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: gitlab
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   replicas: 1
   selector:
@@ -369,13 +402,6 @@ spec:
               key: GITLAB_ROOT_PASSWORD
               name: gitlab-secret
         image: gitlab/gitlab-ce:latest
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 300
-          periodSeconds: 30
-          timeoutSeconds: 5
         name: gitlab
         ports:
         - containerPort: 80
@@ -384,20 +410,9 @@ spec:
           name: https
         - containerPort: 22
           name: ssh
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-        resources:
-          limits:
-            cpu: 2000m
-            memory: 4Gi
-          requests:
-            cpu: 1500m
-            memory: 3Gi
+        resources: {}
+        securityContext:
+          privileged: true
         volumeMounts:
         - mountPath: /etc/gitlab
           name: gitlab-config-storage
@@ -411,9 +426,6 @@ spec:
         - mountPath: /etc/gitlab/redis_password
           name: gitlab-secret-volume
           subPath: GITLAB_REDIS_PASSWORD
-        - mountPath: /etc/gitlab/gitlab.rb
-          name: gitlab-config-volume
-          subPath: gitlab.rb
       volumes:
       - name: gitlab-config-storage
         persistentVolumeClaim:
@@ -427,9 +439,6 @@ spec:
       - name: gitlab-secret-volume
         secret:
           secretName: gitlab-secret
-      - configMap:
-          name: gitlab-config
-        name: gitlab-config-volume
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -444,7 +453,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: postgresql
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   replicas: 1
   selector:
@@ -504,13 +513,7 @@ spec:
             - postgres
           initialDelaySeconds: 5
           periodSeconds: 5
-        resources:
-          limits:
-            cpu: 500m
-            memory: 1Gi
-          requests:
-            cpu: 250m
-            memory: 512Mi
+        resources: {}
         volumeMounts:
         - mountPath: /var/lib/postgresql/data
           name: postgres-storage
@@ -532,7 +535,7 @@ metadata:
     app.kubernetes.io/part-of: gitlab
     app.kubernetes.io/version: latest
   name: redis
-  namespace: gitlab
+  namespace: gitlab-staging
 spec:
   replicas: 1
   selector:
@@ -584,13 +587,7 @@ spec:
             - ping
           initialDelaySeconds: 5
           periodSeconds: 5
-        resources:
-          limits:
-            cpu: 250m
-            memory: 512Mi
-          requests:
-            cpu: 100m
-            memory: 256Mi
+        resources: {}
         volumeMounts:
         - mountPath: /data
           name: redis-storage

@@ -4,17 +4,10 @@ kind: Kustomization
 metadata:
   name: gitlab-staging
 
-bases:
-  - ../../base
+resources:
+- ../../base
 
 namespace: gitlab-staging
-
-patchesStrategicMerge:
-- storage-patch.yaml
-- resources-patch.yaml
-
-commonLabels:
-  environment: staging
 
 replicas:
 - name: gitlab
