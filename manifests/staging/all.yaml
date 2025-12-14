@@ -33,6 +33,7 @@ data:
 
     # Disable prometheus for smaller deployment
     prometheus['enable'] = false
+    prometheus['prometheus_mmap_enable'] = false
     grafana['enable'] = false
 
     # Disable unnecessary services
@@ -46,6 +47,9 @@ data:
 
     # Keep LFS enabled as requested
     gitlab_rails['lfs_enabled'] = true
+
+    # Disable Prometheus mmap to prevent 500 errors
+    gitlab_rails['prometheus_client_mmap_enable'] = false
 
     # Optimize Sidekiq for CI/CD workloads
     sidekiq['min_concurrency'] = 2
