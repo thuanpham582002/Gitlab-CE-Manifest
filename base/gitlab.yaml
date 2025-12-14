@@ -6,11 +6,14 @@ metadata:
 type: Opaque
 data:
   # GitLab root password (base64 encoded) - CHANGE THIS IN PRODUCTION
-  GITLAB_ROOT_PASSWORD: YWRtaW4xMjM=
+  # Password: SecureGitLab@2025! (meets GitLab password requirements)
+  GITLAB_ROOT_PASSWORD: U2VjdXJlR2l0TGFiQDIwMjUh
   # GitLab database secrets
-  GITLAB_DB_PASSWORD: Z2l0bGFicGFzc3dvcmQ=
+  # Password: GitLabDb@2025!Secure
+  GITLAB_DB_PASSWORD: R2l0TGFiRGJAMjAyNSFTZWN1cmU=
   # Redis password
-  GITLAB_REDIS_PASSWORD: cmVkaXNwYXNzd29yZA==
+  # Password: Redis@2025!SecureKey
+  GITLAB_REDIS_PASSWORD: UmVkaXNAMjAyNSFTZWN1cmVLZXk=
 ---
 apiVersion: v1
 kind: ConfigMap
